@@ -1,0 +1,32 @@
+# ROS and Python build products
+/build/
+/install/
+/log/
+/logs/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# Machine-specific configuration
+/config/deployment.env
+/config/calibration/
+.env
+.vscode/
+.idea/
+
+# Models, recordings, and local experiment assets
+/models/
+/assets/
+/training_logs/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.bag
+*.db3
+*.mcap
+
+# Robot descriptions, meshes, and bundled dependency licenses are tracked.

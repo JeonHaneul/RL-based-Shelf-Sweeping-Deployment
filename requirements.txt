@@ -1,0 +1,15 @@
+# ROS packages are installed with apt/rosdep. This is not a validated version lock.
+numpy<2
+opencv-python<4.12
+scipy
+pandas
+matplotlib
+scikit-learn
+PyYAML
+loguru
+Pillow
+torch
+ultralytics
+ur-rtde
+# Used only by the UNO-Push baseline.
+rotutils
