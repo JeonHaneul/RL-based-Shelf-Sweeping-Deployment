@@ -33,7 +33,7 @@ The source also contains OptiTrack-based DRL evaluation, UNO-Push, and human-in-
 | `config/` | Deployment settings and recorded static transforms |
 | `scripts/` | Checks that do not connect to or move a robot |
 
-UR and Robotiq sources are included as ordinary files at the original pinned revisions. The POE kinematics solver is also included locally. Its original pinned revision was unavailable, so an available revision is recorded in [third-party notices](THIRD_PARTY_NOTICES.md). No Git submodule initialization is needed. The camera repository is pending separate integration.
+UR and Robotiq sources are included as ordinary files at the original pinned revisions. The POE kinematics solver is also included locally. Its original pinned revision was unavailable, so an available revision is recorded in [third-party notices](THIRD_PARTY_NOTICES.md). No Git submodule initialization is needed. The [Shelf-Sweeping Camera Kit](https://github.com/JeonHaneul/RL-based-Shelf-Sweeping-Camera-Kit) provides the Triton RGB image and Helios2 colored point cloud. Build it in its own ROS 2 workspace using the kit’s Arena SDK instructions.
 
 ## Installation
 
@@ -57,24 +57,27 @@ On a fresh ROS installation, initialize rosdep once with `sudo rosdep init` befo
 
 ## Files and settings to provide
 
-The original source contains configuration snapshots, **but no trained policy, YOLO weights, or camera calibration file**.
+Provide the exported policy and YOLO weights for your experiment. The camera kit includes the registration measured on the original rig. A different camera pair or mount needs its own calibration.
 
 | Input | Expected layout or setting |
 | --- | --- |
 | Policy export | `SWEEP_POLICY_DIR/exported/policy.pt` and matching `SWEEP_POLICY_DIR/params/env.yaml` |
 | Detector weights | `SWEEP_VISION_WEIGHTS`, default `models/vision/best.pt` |
-| Camera calibration | `SWEEP_CAMERA_CALIBRATION`, default `config/calibration/orientation.yml` |
+| Camera registration | `SWEEP_CAMERA_CALIBRATION`, set to the same `orientation.yml` used by the camera driver |
 | Robot address | `SWEEP_ROBOT_IP`, explicitly configured before starting a controller |
 | Static transforms | `SWEEP_TF_CONFIG`, default `config/static_tf.json` |
 | Logs | `SWEEP_LOG_DIR`, default `logs/` |
 
-Copy `config/deployment.env.example` to `config/deployment.env`, edit its values, then load it in each terminal:
+Copy `config/deployment.env.example` to `config/deployment.env` and edit its values. After building both workspaces, run the following from the deployment repository in each vision terminal. Replace the camera workspace path with your local checkout.
 
 ```bash
 source /opt/ros/humble/setup.bash
-source install/setup.bash
+source /path/to/RL-based-Shelf-Sweeping-Camera-Kit/install/setup.bash
+source install/local_setup.bash
 export SWEEP_WORKSPACE="$PWD"
 source config/deployment.env
+# Original rig. For a different rig, set this to its own registration file.
+export SWEEP_CAMERA_CALIBRATION="$(ros2 pkg prefix --share lucid_camera_node)/calibration/orientation.yml"
 python3 scripts/check_setup.py --mode vision --runtime
 ```
 
@@ -89,8 +92,8 @@ Use separate terminals with the same environment settings. Start the robot-state
 ros2 launch ur_robot_driver ur_control.launch.py ur_type:=ur5e robot_ip:="$SWEEP_ROBOT_IP"
 ros2 launch base_package static_tf.launch.py
 
-# Camera command used by the original stack, available after camera integration
-ros2 run lucid_camera_node lucid_node
+# Camera terminal. For a different camera pair, also pass -p intrinsics_file:=/path/to/tritoncalibration.yml.
+ros2 run lucid_camera_node lucid_node --ros-args -p orientation_file:="$SWEEP_CAMERA_CALIBRATION"
 
 # Separate terminals
 python3 -m perception_package.segmentation
@@ -103,7 +106,7 @@ python3 -m control_package.DRL.drl_logging --episode_num 1
 python3 -m control_package.DRL.run_task_with_vision --episode_num 1
 ```
 
-The final command connects to RTDE and moves the arm to its initial posture during initialization. It is not a preview command. The motion loop uses direct RTDE control, so do not command the same arm simultaneously through another controller. Camera startup remains pending until the separate camera repository and its SDK are installed.
+The final command connects to RTDE and moves the arm to its initial posture during initialization. It is not a preview command. The motion loop uses direct RTDE control, so do not command the same arm simultaneously through another controller.
 
 ## Policy compatibility and validation
 

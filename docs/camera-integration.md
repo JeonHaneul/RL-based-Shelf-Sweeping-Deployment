@@ -1,6 +1,6 @@
 # Camera integration
 
-The camera repository will be integrated separately. The original project referenced `Holiclife-KTH/ROS2_Helios2_RGB_KIT` at `11ce7938a7a1947c7211066186f1d75b37c3607c`. That submodule is not presented as bundled or runnable in this distribution.
+Build the [Shelf-Sweeping Camera Kit](https://github.com/JeonHaneul/RL-based-Shelf-Sweeping-Camera-Kit#build-the-camera-workspace) in a separate ROS 2 Humble workspace. Its `lucid_camera_node` publishes a Triton image in `triton_camera` and a colored Helios2 point cloud in `helios_camera`. The deployment subscribes to the following topics.
 
 | Interface | Type | Default |
 | --- | --- | --- |
@@ -14,4 +14,6 @@ The camera repository will be integrated separately. The original project refere
 
 The recorded transform chain is `base_link -> opti_world -> triton_camera -> helios_camera`. The TCP is attached to `tool0_controller`. The numbers in `config/static_tf.json` are preserved experiment values, not calibration results for a new robot or camera position. Replace that file or set `SWEEP_TF_CONFIG` after calibration.
 
-The original camera executable is `ros2 run lucid_camera_node lucid_node`. Its Arena SDK, camera network configuration, calibration files, and compatible source revision will be checked when the separate camera repository is supplied.
+Set `SWEEP_CAMERA_CALIBRATION` and the driver’s `orientation_file` to the same file. The kit publishes XYZ in metres. The pose estimator converts those points to millimetres for projection, matching the units of `translationVector`. For another camera pair, also pass its Triton intrinsics to the driver with `intrinsics_file`. The [camera kit source record](https://github.com/JeonHaneul/RL-based-Shelf-Sweeping-Camera-Kit/blob/main/SOURCE.md) identifies the distributed revision and the earlier submodule pin.
+
+With the camera running, use `ros2 topic hz /triton/image_raw` and `ros2 topic hz /helios/pointcloud_rgb` to confirm both streams before starting detection. The [deployment README](../README.md#files-and-settings-to-provide) shows the workspace and calibration settings.
